@@ -17,6 +17,6 @@ extern int (*global_callback)(char*);
 
 
 void startCameraServer(int (*callback)(char*));
-void initStream();
+void initCameraServer();
 
 #endif

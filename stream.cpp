@@ -174,7 +174,7 @@ void startCameraServer(int (*callback)(char*)) {
 }
 
 
-void initStream() {
+void initCameraServer() {
   camera_config_t config;
   config.ledc_channel = LEDC_CHANNEL_0;
   config.ledc_timer = LEDC_TIMER_0;

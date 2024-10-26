@@ -2,39 +2,70 @@
 #include "soc/rtc_cntl_reg.h"    // disable brownout problems
 
 #include <DCMotor.h>
-
-// #define MOTOR_1_PIN_1   14
-// #define MOTOR_1_PIN_2   15
-// #define MOTOR_1_PIN_EN  4
-// #define MOTOR_2_PIN_1   13
-// #define MOTOR_2_PIN_2   12
-// #define MOTOR_2_PIN_EN  2
-
 #include "stream.h"
 
+#define MOTOR_1_PIN_1   14
+#define MOTOR_1_PIN_2   15
+#define MOTOR_1_PIN_EN  4
+#define MOTOR_2_PIN_1   13
+#define MOTOR_2_PIN_2   12
+#define MOTOR_2_PIN_EN  2
 
-// DCMotor motor1 = DCMotor(MOTOR_1_PIN_1, MOTOR_1_PIN_2, MOTOR_1_PIN_EN);
-//DCMotor motor2 = DCMotor(MOTOR_2_PIN_1, MOTOR_2_PIN_2, MOTOR_2_PIN_EN);
+#define MAX_SPEED 150
+
+DCMotor motorLeft = DCMotor(MOTOR_1_PIN_1, MOTOR_1_PIN_2, MOTOR_1_PIN_EN);
+DCMotor motorRight = DCMotor(MOTOR_2_PIN_1, MOTOR_2_PIN_2, MOTOR_2_PIN_EN);
 
 int action_callback(char variable[32]) {
   Serial.println(variable);
-  // if(!strcmp(variable, "forward")) {
-  //   Serial.println("Forward");
-  // }
-  // else if(!strcmp(variable, "left")) {
-  //   Serial.println("Left");
-  // }
-  // else if(!strcmp(variable, "right")) {
-  //   Serial.println("Right");
-  // }
-  // else if(!strcmp(variable, "backward")) {
-  //   Serial.println("Backward");
-  // }
-  // else if(!strcmp(variable, "stop")) {
-  //   Serial.println("Stop");
-  // } else {
-  //   return -1;
-  // }
+  if (!strcmp(variable, "forward_right")) {
+    //Serial.println("Forward-right");
+    motorRight.on(MAX_SPEED / 2);
+    motorLeft.on(MAX_SPEED);
+
+  } else if (!strcmp(variable, "forward_left")) {
+    //Serial.println("Forward-left");
+    motorRight.on(MAX_SPEED);
+    motorLeft.on(MAX_SPEED / 2);
+
+  } else if (!strcmp(variable, "backward_right")) {
+    //Serial.println("Backward-right");
+    motorRight.on(-MAX_SPEED / 2);
+    motorLeft.on(-MAX_SPEED);
+
+  } else if (!strcmp(variable, "backward_left")) {
+    //Serial.println("Backward-left");
+    motorRight.on(-MAX_SPEED);
+    motorLeft.on(-MAX_SPEED / 2);
+
+  } else if(!strcmp(variable, "forward")) {
+    //Serial.println("Forward");
+    motorRight.on(MAX_SPEED);
+    motorLeft.on(MAX_SPEED);
+
+  } else if(!strcmp(variable, "backward")) {
+    //Serial.println("Backward");
+    motorRight.on(-MAX_SPEED);
+    motorLeft.on(-MAX_SPEED);
+
+  } else if(!strcmp(variable, "left")) {
+    //Serial.println("Left");
+    motorRight.on(MAX_SPEED);
+    motorLeft.on(-MAX_SPEED);
+
+  } else if(!strcmp(variable, "right")) {
+    //Serial.println("Right");
+    motorRight.on(-MAX_SPEED);
+    motorLeft.on(MAX_SPEED);
+
+  } else if(!strcmp(variable, "stop")) {
+    //Serial.println("Stop");
+    motorRight.on(0);
+    motorLeft.on(0);
+
+  } else {
+    return -1;
+  }
   return 0;
 }
 
@@ -45,7 +76,10 @@ void setup() {
   Serial.begin(115200);
   Serial.setDebugOutput(false);
 
-  initStream();
+  motorLeft.off();
+  motorRight.off();
+
+  initCameraServer();
   
   // Start streaming web server
   startCameraServer(action_callback);

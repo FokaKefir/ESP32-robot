@@ -6,7 +6,7 @@
 
 #define MOTOR_1_PIN_1   14
 #define MOTOR_1_PIN_2   15
-#define MOTOR_1_PIN_EN  4
+#define MOTOR_1_PIN_EN  1
 #define MOTOR_2_PIN_1   13
 #define MOTOR_2_PIN_2   12
 #define MOTOR_2_PIN_EN  2
@@ -20,23 +20,23 @@ int action_callback(char variable[32]) {
   Serial.println(variable);
   if (!strcmp(variable, "forward_right")) {
     //Serial.println("Forward-right");
-    motorRight.on(MAX_SPEED / 2);
+    motorRight.on(MAX_SPEED / 3);
     motorLeft.on(MAX_SPEED);
 
   } else if (!strcmp(variable, "forward_left")) {
     //Serial.println("Forward-left");
     motorRight.on(MAX_SPEED);
-    motorLeft.on(MAX_SPEED / 2);
+    motorLeft.on(MAX_SPEED / 3);
 
   } else if (!strcmp(variable, "backward_right")) {
     //Serial.println("Backward-right");
-    motorRight.on(-MAX_SPEED / 2);
+    motorRight.on(-MAX_SPEED / 3);
     motorLeft.on(-MAX_SPEED);
 
   } else if (!strcmp(variable, "backward_left")) {
     //Serial.println("Backward-left");
     motorRight.on(-MAX_SPEED);
-    motorLeft.on(-MAX_SPEED / 2);
+    motorLeft.on(-MAX_SPEED / 3);
 
   } else if(!strcmp(variable, "forward")) {
     //Serial.println("Forward");
@@ -50,13 +50,13 @@ int action_callback(char variable[32]) {
 
   } else if(!strcmp(variable, "left")) {
     //Serial.println("Left");
-    motorRight.on(MAX_SPEED);
-    motorLeft.on(-MAX_SPEED);
+    motorRight.on(-MAX_SPEED);
+    motorLeft.on(MAX_SPEED);
 
   } else if(!strcmp(variable, "right")) {
     //Serial.println("Right");
-    motorRight.on(-MAX_SPEED);
-    motorLeft.on(MAX_SPEED);
+    motorRight.on(MAX_SPEED);
+    motorLeft.on(-MAX_SPEED);
 
   } else if(!strcmp(variable, "stop")) {
     //Serial.println("Stop");

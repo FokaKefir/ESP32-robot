@@ -8,8 +8,8 @@
 
 
 // Define the variables
-const char *ssid = "Babos_2G";
-const char *password = "hankoeni";
+const char *ssid = "Babi";
+const char *password = "12345678";
 httpd_handle_t camera_httpd = NULL;
 httpd_handle_t stream_httpd = NULL;
 

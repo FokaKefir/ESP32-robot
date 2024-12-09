@@ -111,7 +111,7 @@ A webes interfész egy HTML5 oldalt tartalmaz, amely JavaScript segítségével 
   onmouseup="releaseButton('forward');">Forward</button>
 ```
 
-![](images/web-interface.jpeg){width=300}
+<img src="images/web-interface.jpeg" alt="Web Interface" width="300">
 
 # Programok forráskódja és dokumentációja
 A projekt kódja négy fő komponensre bontható: motorvezérlés, kamera inicializálás és streamelés, HTTP kérések kezelése, valamint a felhasználói interfész. Az alábbiakban részletesen elemzem ezeket a részeket.

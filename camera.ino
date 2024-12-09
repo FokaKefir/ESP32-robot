@@ -11,7 +11,7 @@
 #define MOTOR_2_PIN_2   12
 #define MOTOR_2_PIN_EN  2
 
-#define MAX_SPEED 150
+#define MAX_SPEED 180
 
 DCMotor motorLeft = DCMotor(MOTOR_1_PIN_1, MOTOR_1_PIN_2, MOTOR_1_PIN_EN);
 DCMotor motorRight = DCMotor(MOTOR_2_PIN_1, MOTOR_2_PIN_2, MOTOR_2_PIN_EN);

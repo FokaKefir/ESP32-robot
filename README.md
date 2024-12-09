@@ -71,6 +71,9 @@ A webes interfész lehetővé teszi:
 2. Az élő kamerakép megtekintését.
 3. Az egyes gombok állapotának valós idejű frissítését.
 
+Robot balról               |  Robot fent-jobbról
+:-------------------------:|:-------------------------:
+![](images/robot0.jpeg)    |  ![](images/robot1.jpeg)
 
 
 # Beágyazott vezérlő programok
@@ -107,6 +110,8 @@ A webes interfész egy HTML5 oldalt tartalmaz, amely JavaScript segítségével 
   onmousedown="pressButton('forward');" 
   onmouseup="releaseButton('forward');">Forward</button>
 ```
+
+![](images/web-interface.jpeg)
 
 # Programok forráskódja és dokumentációja
 A projekt kódja négy fő komponensre bontható: motorvezérlés, kamera inicializálás és streamelés, HTTP kérések kezelése, valamint a felhasználói interfész. Az alábbiakban részletesen elemzem ezeket a részeket.

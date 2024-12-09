@@ -215,6 +215,10 @@ void initCameraServer() {
   }
   // Wi-Fi connection
   WiFi.begin(ssid, password);
+  IPAddress local_IP(192, 168, 43, 100);
+  IPAddress gateway(192, 168, 43, 1);
+  IPAddress subnet(255, 255, 255, 0);
+  WiFi.config(local_IP, gateway, subnet);
   while (WiFi.status() != WL_CONNECTED) {
     delay(500);
     Serial.print(".");

@@ -49,7 +49,7 @@ A motorvezérlő és az ESP32-CAM 12V-os tápegységről működik. Az L298N biz
 | Jumper kábelek    | Több      | Csatlakozások                   |
 | Alaplap vagy tartó | 1         | Stabil platform                 |
 
-
+![](images/kapcs.jpeg)
 
 # Megvalósítás és működés leírása
 A robot tankstílusú meghajtással működik, amelyet külön motorok vezérelnek. Az ESP32-CAM lehetővé teszi a kamera képének streamelését és a motorok irányítását a felhasználói parancsok alapján.

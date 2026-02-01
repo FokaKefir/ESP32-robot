@@ -1,397 +1,439 @@
 
-# ESP32-CAM Tank Robot Dokumentáció
+# ESP32-CAM Tank Robot
 
-# Felhasználói platform bemutatása
-Az **ESP32-CAM** egy fejlett, ESP32-alapú fejlesztői modul, amely beépített Wi-Fi és kamera képességekkel rendelkezik. Ideális választás IoT-, AI- és robotikai alkalmazásokhoz. Ez a projekt kihasználja az ESP32-CAM képességeit a motorvezérléshez, a kamera képének streameléséhez, és egy egyszerű webes interfész biztosításához.
+## Overview
 
-### **ESP32-CAM főbb jellemzői**
-- **Processzor:** Dual-core Xtensa LX6, akár 240 MHz órajellel.
-- **Memória:** 520 KB belső SRAM + opcionális PSRAM (8 MB).
-- **Csatlakoztathatóság:** Beépített Wi-Fi (802.11 b/g/n) és Bluetooth.
-- **Kamera:** OV2640 támogatás, VGA (640x480) felbontás.
-- **GPIO-k:** Rugalmas csatlakozási lehetőségek (pl. motorvezérlés, kameraadatok).
-- **Tápfeszültség:** 5V, azonban a projektben 12V-ot használunk a motorok számára.
+This project implements a web-controlled tank robot using the **ESP32-CAM** module. The robot features real-time video streaming and wireless control via a web interface, making it an ideal platform for robotics education, surveillance applications, and IoT experimentation.
 
-### **Felhasználási területek**
-Az ESP32-CAM gyakran alkalmazott:
-- Robotikában (pl. robotkarok, tankok, járművek).
-- Biztonsági rendszerekben (IP-kamerák).
-- Automatizált IoT eszközökben.
+### Key Features
 
+- **Real-time Video Streaming**: MJPEG stream from ESP32-CAM's OV2640 camera
+- **Web-based Control**: Intuitive browser interface for robot navigation
+- **Tank-style Locomotion**: Differential drive system with four DC motors
+- **Wi-Fi Connectivity**: Wireless control and video transmission
+- **Low Latency**: Responsive motor control with immediate feedback
 
-# Tervdokumentáció
-### **Kapcsolási rajz és felépítés**
-A projektben két pár DC motort használunk, amelyeket egy **L298N H-híd** vezérlő hajt meg. Az ESP32-CAM vezérli a motorokat, valamint a kamera képét streameli. Az alábbi kapcsolási pontok biztosítják az eszköz megfelelő működését:
+## Hardware Platform
 
-#### **Kapcsolódások**
-1. **ESP32-CAM és motorvezérlő (L298N):**
-   - **Bal oldali motor (Motor 1):**
-     - IN1 -> GPIO 14
-     - IN2 -> GPIO 15
-     - ENA -> GPIO 1 (PWM)
-   - **Jobb oldali motor (Motor 2):**
-     - IN1 -> GPIO 13
-     - IN2 -> GPIO 12
-     - ENB -> GPIO 2 (PWM)
-2. **Kamera kapcsolódása az ESP32-CAM-hez:**
-   - Gyári lábkiosztás szerint kötve (lásd `camera_pins.h`).
+### ESP32-CAM Module
 
-#### **Energiaellátás**
-A motorvezérlő és az ESP32-CAM 12V-os tápegységről működik. Az L298N biztosítja a motorok megfelelő működéséhez szükséges áramot.
+The **ESP32-CAM** is an advanced development board based on the ESP32 microcontroller with integrated camera and Wi-Fi capabilities. It is ideal for IoT, AI, and robotics applications.
 
-### **Alkatrészlista**
-| Alkatrész         | Mennyiség | Leírás                           |
-|-------------------|-----------|----------------------------------|
-| ESP32-CAM         | 1         | Kamera és vezérlőegység         |
-| L298N H-híd       | 1         | DC motorvezérlés                |
-| DC motor (6-12V)  | 4         | Tank meghajtás                  |
-| 12V tápegység     | 1         | Energiaellátás                  |
-| Jumper kábelek    | Több      | Csatlakozások                   |
-| Alaplap vagy tartó | 1         | Stabil platform                 |
+**Technical Specifications:**
+- **Processor**: Dual-core Xtensa LX6, up to 240 MHz
+- **Memory**: 520 KB SRAM + optional 8 MB PSRAM
+- **Connectivity**: Built-in Wi-Fi (802.11 b/g/n) and Bluetooth
+- **Camera**: OV2640 sensor, VGA resolution (640×480)
+- **GPIO**: Multiple pins for motor control and peripheral interfacing
+- **Power Supply**: 5V input (project uses 12V for motor driver)
 
-![](images/kapcs.jpeg)
+**Common Applications:**
+- Robotics (robot arms, tanks, autonomous vehicles)
+- Security systems (IP cameras, surveillance)
+- IoT automation and monitoring
 
-# Megvalósítás és működés leírása
-A robot tankstílusú meghajtással működik, amelyet külön motorok vezérelnek. Az ESP32-CAM lehetővé teszi a kamera képének streamelését és a motorok irányítását a felhasználói parancsok alapján.
+## Hardware Design
 
-### **Működési módok**
-- **Előre haladás:** Mindkét oldal motorjai azonos sebességgel forognak előre.
-- **Hátrafelé haladás:** Mindkét oldal motorjai azonos sebességgel forognak hátrafelé.
-- **Jobbra/Balra fordulás:** Az egyik oldalon előre, a másik oldalon hátrafelé forognak a motorok.
-- **Enyhe kanyarodás:** Az egyik oldal motorjai csökkentett sebességgel forognak.
-- **Stop:** Az összes motor leáll.
+### Circuit Diagram and Assembly
 
-#### **Kamera funkciók**
-- Élőkép streamelése MJPEG formátumban.
-- A webes interfész automatikusan beállítja a kamera URL-jét.
+The robot uses two pairs of DC motors controlled by an **L298N H-bridge** motor driver. The ESP32-CAM manages motor control and streams video to the web interface.
 
-### **Felhasználói élmény**
-A webes interfész lehetővé teszi:
-1. A robot irányítását egyszerű gombokkal.
-2. Az élő kamerakép megtekintését.
-3. Az egyes gombok állapotának valós idejű frissítését.
+#### Pin Connections
 
-Robot balról               |  Robot fent-jobbról
-:-------------------------:|:-------------------------:
-![](images/robot0.jpeg)    |  ![](images/robot1.jpeg)
+**ESP32-CAM to L298N Motor Driver:**
 
+| Component | ESP32-CAM Pin | L298N Pin |
+|-----------|---------------|-----------|
+| Left Motor Direction A | GPIO 14 | IN1 |
+| Left Motor Direction B | GPIO 15 | IN2 |
+| Left Motor Speed (PWM) | GPIO 1 | ENA |
+| Right Motor Direction A | GPIO 13 | IN1 |
+| Right Motor Direction B | GPIO 12 | IN2 |
+| Right Motor Speed (PWM) | GPIO 2 | ENB |
 
-# Beágyazott vezérlő programok
-A vezérlés főbb komponensei:
-1. **Motorvezérlő osztály (`DCMotor`)**:
-   - Motorok sebességét és irányát PWM-mel szabályozza.
-   - Támogatja az időzített motorvezérlést (pl. `on(speed, millisec)`).
+**Camera Connection:**
+- Follows factory pin configuration (see [camera_pins.h](camera_pins.h))
 
-2. **Callback funkció (`action_callback`)**:
-   - HTTP parancsokat dolgoz fel (pl. előre, hátra, jobbra, balra).
+#### Power Supply
 
-3. **Kamera stream handler**:
-   - Az `/stream` végponton keresztül továbbítja az MJPEG élőképet.
+- **Input Voltage**: 12V DC power supply
+- **Motor Driver**: L298N provides regulated power to motors
+- **ESP32-CAM**: Powered through the motor driver's 5V regulator or separate 5V source
 
-**Példa: Motorvezérlés megvalósítása:**
+### Bill of Materials
+
+| Component | Quantity | Description |
+|-----------|----------|-------------|
+| ESP32-CAM | 1 | Camera and control module |
+| L298N H-Bridge | 1 | DC motor driver |
+| DC Motors (6-12V) | 4 | Tank drive motors |
+| 12V Power Supply | 1 | Main power source |
+| Jumper Wires | Multiple | Connections |
+| Chassis/Platform | 1 | Robot frame |
+
+### Assembly Photos
+
+![Robot Side View](images/robot0.jpeg) ![Robot Top-Right View](images/robot1.jpeg)
+
+![Wiring Diagram](images/kapcs.jpeg)
+
+## System Architecture
+
+### Operation Modes
+
+The robot implements tank-style differential drive with the following control modes:
+
+| Command | Left Motors | Right Motors | Behavior |
+|---------|-------------|--------------|----------|
+| **Forward** | MAX_SPEED | MAX_SPEED | Straight forward motion |
+| **Backward** | -MAX_SPEED | -MAX_SPEED | Straight backward motion |
+| **Right Turn** | MAX_SPEED | -MAX_SPEED | Rotate clockwise in place |
+| **Left Turn** | -MAX_SPEED | MAX_SPEED | Rotate counter-clockwise |
+| **Forward Right** | MAX_SPEED/3 | MAX_SPEED | Gradual right curve |
+| **Forward Left** | MAX_SPEED | MAX_SPEED/3 | Gradual left curve |
+| **Backward Right** | -MAX_SPEED/3 | -MAX_SPEED | Reverse right curve |
+| **Backward Left** | -MAX_SPEED | -MAX_SPEED/3 | Reverse left curve |
+| **Stop** | 0 | 0 | All motors off |
+
+### Camera Functionality
+
+- **Format**: MJPEG streaming
+- **Resolution**: VGA (640×480) or SVGA depending on PSRAM availability
+- **Stream Endpoint**: `http://<ESP32_IP>:81/stream`
+- **Quality**: Configurable JPEG compression (10-12 quality setting)
+
+## Software Implementation
+
+### Project Structure
+
+```
+ESP32-robot/
+├── camera.ino          # Main program and motor control logic
+├── DCMotor.h           # Motor control class header
+├── DCMotor.cpp         # Motor control implementation
+├── stream.h            # Camera streaming header
+├── stream.cpp          # HTTP server and streaming logic
+├── html.h              # Web interface HTML
+├── camera_pins.h       # Camera GPIO configuration
+└── README.md           # Project documentation
+```
+
+### Core Components
+
+#### 1. DCMotor Class
+
+The `DCMotor` class provides an abstraction layer for controlling DC motors through an H-bridge driver.
+
+**Features:**
+- Bidirectional motor control with speed regulation
+- PWM-based speed control (0-255 range)
+- Safe direction changes with automatic motor stop
+
+**Key Methods:**
 ```cpp
-if (!strcmp(variable, "forward")) {
-  motorRight.on(MAX_SPEED);
-  motorLeft.on(MAX_SPEED);
-}
+DCMotor(uint8_t pinA, uint8_t pinB, uint8_t pinS);  // Constructor
+void on(int speed);                                   // Set speed and direction
+void on(int speed, int millisec);                     // Timed operation
+void off();                                           // Stop motor
 ```
 
-# Felhasználói interfész programok
-A webes interfész egy HTML5 oldalt tartalmaz, amely JavaScript segítségével HTTP-kéréseket küld az ESP32-CAM-nek. A felhasználói élmény javítása érdekében a gombok állapota dinamikusan frissül.
+**Implementation Details:**
+- Speed range: -255 (full reverse) to +255 (full forward)
+- Positive speed: Motor rotates forward
+- Negative speed: Motor rotates backward
+- Zero speed: Motor stops
+- Uses `constrain()` to ensure values stay within valid PWM range
 
-### **Felépítés**
-- **Kamera stream:** A weboldal automatikusan betölti az ESP32-CAM kamera képét.
-- **Irányítási gombok:** Előre, hátra, jobbra, balra, stop.
-- **Aszinkron parancsok:** A JavaScript XMLHttpRequest használatával kommunikál a vezérlővel.
+#### 2. Camera Initialization
 
-**Példa gombok működésére:**
-```html
-<button id="forward" class="button" 
-  onmousedown="pressButton('forward');" 
-  onmouseup="releaseButton('forward');">Forward</button>
-```
+The camera subsystem configures the OV2640 sensor and manages video streaming.
 
-<img src="images/web-interface.jpeg" alt="Web Interface" width="300">
-
-# Programok forráskódja és dokumentációja
-A projekt kódja négy fő komponensre bontható: motorvezérlés, kamera inicializálás és streamelés, HTTP kérések kezelése, valamint a felhasználói interfész. Az alábbiakban részletesen elemzem ezeket a részeket.
-
-### 1. **Motorvezérlés: DCMotor osztály**
-A `DCMotor` osztály a motorok irányításáért felel. Az osztály a motorok vezérléséhez három GPIO-t használ: két irányjelző pin (`pinA` és `pinB`) és egy PWM jel (`pinS`).
-
-#### **Kód elemzése**
+**Configuration Parameters:**
 ```cpp
-class DCMotor {
-  private:
-    uint8_t pinA;
-    uint8_t pinB;
-    uint8_t pinS;
-  
-  public:
-    // Konstruktor: inicializálja a GPIO-kat.
-    DCMotor(uint8_t pinA, uint8_t pinB, uint8_t pinS) {
-      this->pinA = pinA;
-      this->pinB = pinB;
-      this->pinS = pinS;
-
-      pinMode(this->pinA, OUTPUT);
-      pinMode(this->pinB, OUTPUT);
-      pinMode(this->pinS, OUTPUT);
-    }
-
-    // Motor bekapcsolása adott sebességgel.
-    void on(int speed) {
-      this->off();  // Biztonságos leállítás az irányváltás előtt.
-
-      // Sebesség határolása (-255 és 255 között).
-      speed = constrain(speed, -255, 255);
-      
-      // Motor irányának beállítása.
-      digitalWrite(this->pinA, speed >= 0 ? HIGH : LOW);
-      digitalWrite(this->pinB, speed >= 0 ? LOW : HIGH);
-
-      // Sebesség beállítása PWM segítségével.
-      analogWrite(this->pinS, abs(speed));
-    }
-
-    // Motor kikapcsolása.
-    void off() {
-      digitalWrite(this->pinA, LOW);
-      digitalWrite(this->pinB, LOW);
-      analogWrite(this->pinS, 0);
-    }
-};
+config.frame_size = FRAMESIZE_VGA;      // 640x480 resolution
+config.pixel_format = PIXFORMAT_JPEG;   // JPEG compression
+config.jpeg_quality = 10;               // Quality level (0-63, lower is better)
+config.fb_count = 2;                    // Frame buffers (if PSRAM available)
+config.xclk_freq_hz = 20000000;         // 20MHz clock
 ```
 
-#### **Funkciók működése**
-1. **`on(int speed)`**: Bekapcsolja a motort, a sebesség előjele határozza meg az irányt.
-2. **`off()`**: Biztonságosan kikapcsolja a motort azáltal, hogy az összes vezérlő jelet nullázza.
-3. **`constrain(speed, -255, 255)`**: Biztosítja, hogy a sebességérték a PWM által támogatott tartományban maradjon.
+**Adaptive Quality:**
+- **With PSRAM**: VGA resolution, quality 10, dual buffering
+- **Without PSRAM**: SVGA resolution, quality 12, single buffer
 
-### 2. **Kamera inicializálás és konfiguráció**
-Az ESP32-CAM kamera inicializálása a `initCameraServer` funkcióval történik. Ez a funkció konfigurálja a GPIO-kat, beállítja a frame méretét, és elindítja a Wi-Fi kapcsolatot.
+#### 3. HTTP Server and Control
 
-#### **Kód elemzése**
-```cpp
-void initCameraServer() {
-  camera_config_t config;
-  config.ledc_channel = LEDC_CHANNEL_0;
-  config.ledc_timer = LEDC_TIMER_0;
-  config.pin_d0 = Y2_GPIO_NUM;
-  config.pin_d1 = Y3_GPIO_NUM;
-  config.pin_d2 = Y4_GPIO_NUM;
-  config.pin_d3 = Y5_GPIO_NUM;
-  config.pin_d4 = Y6_GPIO_NUM;
-  config.pin_d5 = Y7_GPIO_NUM;
-  config.pin_d6 = Y8_GPIO_NUM;
-  config.pin_d7 = Y9_GPIO_NUM;
-  config.pin_xclk = XCLK_GPIO_NUM;
-  config.pin_pclk = PCLK_GPIO_NUM;
-  config.pin_vsync = VSYNC_GPIO_NUM;
-  config.pin_href = HREF_GPIO_NUM;
-  config.pin_sscb_sda = SIOD_GPIO_NUM;
-  config.pin_sscb_scl = SIOC_GPIO_NUM;
-  config.pin_pwdn = PWDN_GPIO_NUM;
-  config.pin_reset = RESET_GPIO_NUM;
-  config.xclk_freq_hz = 20000000;
-  config.pixel_format = PIXFORMAT_JPEG; 
+The web server handles two primary functions:
 
-  if(psramFound()){
-    config.frame_size = FRAMESIZE_VGA;
-    config.jpeg_quality = 10;
-    config.fb_count = 2;
-  } else {
-    config.frame_size = FRAMESIZE_SVGA;
-    config.jpeg_quality = 12;
-    config.fb_count = 1;
-  }
-  
-  // Kamera inicializálása
-  esp_err_t err = esp_camera_init(&config);
-  if (err != ESP_OK) {
-    Serial.printf("Camera init failed with error 0x%x", err);
-    return;
-  }
-}
+**Endpoints:**
+- `/`: Serves the web interface (HTML page)
+- `/stream`: MJPEG video stream on port 81
+- `/action?go=<command>`: Motor control commands
+
+**Command Processing:**
+The `cmd_handler` function parses URL parameters and executes corresponding motor actions through the `action_callback` function.
+
+**Command Flow:**
+```
+User clicks button → JavaScript sends HTTP request → ESP32 parses command → 
+action_callback executes → Motors respond → HTTP 200 OK returned
 ```
 
-#### **Főbb pontok**
-- **Frame méret és minőség:** Az `FRAMESIZE_VGA` és `jpeg_quality` határozza meg a képminőséget és a sávszélességet.
-- **Kamera GPIO-k:** A megfelelő kiosztás kritikus a működéshez (lásd `camera_pins.h`).
+#### 4. Motor Control Logic
 
-### 3. **HTTP Kérések Kezelése**
-Az ESP32-CAM egy beépített HTTP szervert használ a parancsok fogadására. A `/action` végponton keresztül érkeznek a motorvezérlési utasítások.
+The `action_callback` function in [camera.ino](camera.ino) processes movement commands:
 
-#### **Kód elemzése**
-```cpp
-static esp_err_t cmd_handler(httpd_req_t *req) {
-  char* buf;
-  size_t buf_len;
-  char variable[32] = {0,};
-  
-  buf_len = httpd_req_get_url_query_len(req) + 1;
-  if (buf_len > 1) {
-    buf = (char*)malloc(buf_len);
-    if (!buf) {
-      httpd_resp_send_500(req);
-      return ESP_FAIL;
-    }
-    if (httpd_req_get_url_query_str(req, buf, buf_len) == ESP_OK) {
-      if (httpd_query_key_value(buf, "go", variable, sizeof(variable)) == ESP_OK) {
-        if (global_callback != nullptr) {
-          int res = global_callback(variable);
-          if (res != 0) {
-            free(buf);
-            return httpd_resp_send_500(req);
-          }
-        }
-      } else {
-        free(buf);
-        httpd_resp_send_404(req);
-        return ESP_FAIL;
-      }
-    }
-    free(buf);
-  } else {
-    httpd_resp_send_404(req);
-    return ESP_FAIL;
-  }
-
-  httpd_resp_set_hdr(req, "Access-Control-Allow-Origin", "*");
-  return httpd_resp_send(req, NULL, 0);
-}
-```
-
-#### **Funkciók működése**
-- Az URI-ból (`/action?go=<action>`) kinyeri a parancsot (pl. `forward`, `backward`).
-- A `global_callback` funkció hívásával végrehajtja a megfelelő motorvezérlési utasítást.
-
-### 4. **Felhasználói interfész működése**
-A webes interfész lehetővé teszi a robot irányítását, miközben megjeleníti a kameraképet.
-
-#### **Kamera kép beállítása**
-```javascript
-window.onload = function() {
-  document.getElementById("photo").src = window.location.href.slice(0, -1) + ":81/stream";
-};
-```
-
-#### **Parancsok küldése**
-```javascript
-function sendAction() {
-  let action = "forward";  // Példa akció
-  const xhr = new XMLHttpRequest();
-  xhr.open("GET", "/action?go=" + action, true);
-  xhr.send();
-}
-```
-
-### 5. **`camera.ino` program részletes elemzése**
-A `camera.ino` az ESP32-CAM fő vezérlőprogramja, amely a motorok irányításáért, a kamera inicializálásáért, valamint a felhasználói parancsok feldolgozásáért felelős.
-
-#### **Kód elemzése**
-##### **Makrók és inicializálások**
-```cpp
-#include "soc/soc.h"             // Brownout problémák kikapcsolása
-#include "soc/rtc_cntl_reg.h"    // Brownout problémák kikapcsolása
-
-#include <DCMotor.h>
-#include "stream.h"
-
-#define MOTOR_1_PIN_1   14
-#define MOTOR_1_PIN_2   15
-#define MOTOR_1_PIN_EN  1
-#define MOTOR_2_PIN_1   13
-#define MOTOR_2_PIN_2   12
-#define MOTOR_2_PIN_EN  2
-
-#define MAX_SPEED 180
-```
-- **Brownout detektor:** Az ESP32 stabil működése érdekében kikapcsoljuk.
-- **Motorok inicializálása:** A bal és jobb oldali motorok vezérlő GPIO-kat definiáljuk.
-- **Sebességkorlát:** A motorok maximális sebessége 180-ra van állítva, amely megfelel a PWM skálázásának.
-
-##### **Motorvezérlési parancsok feldolgozása**
 ```cpp
 int action_callback(char variable[32]) {
-  Serial.println(variable);
-  if (!strcmp(variable, "forward_right")) {
-    motorRight.on(MAX_SPEED / 3);
+  if (!strcmp(variable, "forward")) {
+    motorRight.on(MAX_SPEED);    // 180
     motorLeft.on(MAX_SPEED);
-
-  } else if (!strcmp(variable, "forward_left")) {
-    motorRight.on(MAX_SPEED);
-    motorLeft.on(MAX_SPEED / 3);
-
-  } else if (!strcmp(variable, "backward_right")) {
-    motorRight.on(-MAX_SPEED / 3);
-    motorLeft.on(-MAX_SPEED);
-
-  } else if (!strcmp(variable, "backward_left")) {
-    motorRight.on(-MAX_SPEED);
-    motorLeft.on(-MAX_SPEED / 3);
-
-  } else if(!strcmp(variable, "forward")) {
-    motorRight.on(MAX_SPEED);
-    motorLeft.on(MAX_SPEED);
-
-  } else if(!strcmp(variable, "backward")) {
+  } 
+  else if (!strcmp(variable, "backward")) {
     motorRight.on(-MAX_SPEED);
     motorLeft.on(-MAX_SPEED);
-
-  } else if(!strcmp(variable, "left")) {
-    motorRight.on(-MAX_SPEED);
-    motorLeft.on(MAX_SPEED);
-
-  } else if(!strcmp(variable, "right")) {
-    motorRight.on(MAX_SPEED);
-    motorLeft.on(-MAX_SPEED);
-
-  } else if(!strcmp(variable, "stop")) {
-    motorRight.on(0);
-    motorLeft.on(0);
-
-  } else {
-    return -1; // Hibás parancs
   }
-  return 0;
+  else if (!strcmp(variable, "right")) {
+    motorRight.on(MAX_SPEED);
+    motorLeft.on(-MAX_SPEED);    // Differential drive
+  }
+  // ... additional commands
+  return 0;  // Success
 }
 ```
 
-#### **Funkciók működése**
-- A HTTP GET kéréseket (`/action?go=<parancs>`) dolgozza fel.
-- Minden irányparancs egyedi motorvezérlési utasítást küld:
-  - **`forward_right` / `backward_left`**: Enyhe jobbra-balra mozgás.
-  - **`forward` / `backward`**: Egyenes előre-hátra mozgás.
-  - **`left` / `right`**: Helyben forgás.
-  - **`stop`**: Motorok leállítása.
+**Speed Configuration:**
+- `MAX_SPEED`: 180 (70% of maximum PWM value)
+- Gentle turns: Use 1/3 speed on one side (60 PWM value)
 
-##### **Setup funkció**
+### Web Interface
+
+![Web Interface](images/web-interface.jpeg)
+
+The web interface provides an intuitive control panel with:
+
+**Features:**
+- Real-time video stream display
+- Directional control buttons (8 directions + stop)
+- Touch and mouse event support
+- Button state feedback (active/inactive styling)
+- Responsive design for mobile devices
+
+**Control Mechanism:**
+```javascript
+function pressButton(action) {
+  var xhr = new XMLHttpRequest();
+  xhr.open("GET", "/action?go=" + action, true);
+  xhr.send();
+  
+  document.getElementById(action).disabled = true;  // Visual feedback
+}
+
+function releaseButton(action) {
+  var xhr = new XMLHttpRequest();
+  xhr.open("GET", "/action?go=stop", true);
+  xhr.send();
+  
+  document.getElementById(action).disabled = false;
+}
+```
+
+**Camera Stream Integration:**
+```javascript
+window.onload = function() {
+  var streamUrl = window.location.href.slice(0, -1) + ":81/stream";
+  document.getElementById("photo").src = streamUrl;
+};
+```
+
+### Setup and Initialization
+
+The `setup()` function in [camera.ino](camera.ino) initializes all subsystems:
+
 ```cpp
 void setup() {
-  WRITE_PERI_REG(RTC_CNTL_BROWN_OUT_REG, 0); // Brownout detektor kikapcsolása
+  // Disable brownout detector for stable operation
+  WRITE_PERI_REG(RTC_CNTL_BROWN_OUT_REG, 0);
   
+  // Initialize serial communication
   Serial.begin(115200);
-  Serial.setDebugOutput(false);
-
+  
+  // Ensure motors are stopped at startup
   motorLeft.off();
   motorRight.off();
-
+  
+  // Initialize camera hardware
   initCameraServer();
   
-  // HTTP szerver indítása a parancsok és a kamera stream kezeléséhez
+  // Start HTTP server with motor control callback
   startCameraServer(action_callback);
 }
 ```
 
-#### **Főbb pontok**
-- **Motorok alapállapotba állítása:** Induláskor leállítja a motorokat.
-- **HTTP szerver inicializálása:** A `startCameraServer` regisztrálja a parancsok fogadására használt `action_callback` függvényt.
+**Safety Features:**
+- Motors are explicitly stopped during initialization
+- Brownout detector disabled to prevent unexpected resets
+- All GPIO pins configured as outputs before use
 
+## Configuration
 
-# Következtetések és tapasztalatok
-1. Az ESP32-CAM kiválóan alkalmas robotikai projektekhez, kombinálva a kamera és a vezérlési funkciókat.
-2. Az L298N H-híd egyszerű és hatékony módja a motorvezérlésnek.
-3. A webes interfész gyorsan testreszabható további funkciókkal (pl. sebességállítás, LED vezérlés).
+### Wi-Fi Settings
+
+Edit [stream.cpp](stream.cpp) to configure your Wi-Fi credentials:
+
+```cpp
+const char *ssid = "YourNetworkName";
+const char *password = "YourPassword";
+```
+
+### Motor Speed Adjustment
+
+Modify the `MAX_SPEED` constant in [camera.ino](camera.ino):
+
+```cpp
+#define MAX_SPEED 180  // Range: 0-255
+```
+
+### Camera Quality Settings
+
+Adjust in [stream.cpp](stream.cpp) camera initialization:
+
+```cpp
+config.jpeg_quality = 10;  // Lower value = better quality (0-63)
+config.frame_size = FRAMESIZE_VGA;  // Or FRAMESIZE_SVGA, FRAMESIZE_QVGA
+```
+
+## Getting Started
+
+### Prerequisites
+
+- Arduino IDE with ESP32 board support
+- ESP32-CAM board with OV2640 camera
+- FTDI programmer or USB-to-Serial adapter for initial upload
+
+### Installation Steps
+
+1. **Install ESP32 Board Support:**
+   - Open Arduino IDE
+   - Go to File → Preferences
+   - Add to Additional Board Manager URLs:
+     ```
+     https://raw.githubusercontent.com/espressif/arduino-esp32/gh-pages/package_esp32_index.json
+     ```
+   - Go to Tools → Board → Boards Manager
+   - Search for "ESP32" and install
+
+2. **Configure Board Settings:**
+   - Board: "AI Thinker ESP32-CAM"
+   - Upload Speed: 115200
+   - Flash Frequency: 80MHz
+   - Partition Scheme: "Huge APP (3MB No OTA)"
+
+3. **Upload Code:**
+   - Connect FTDI programmer to ESP32-CAM
+   - Connect GPIO 0 to GND (programming mode)
+   - Upload [camera.ino](camera.ino)
+   - Disconnect GPIO 0 from GND
+   - Press reset button
+
+4. **Connect to Wi-Fi:**
+   - Open Serial Monitor (115200 baud)
+   - Note the IP address displayed
+   - Open browser and navigate to the IP address
+
+### Hardware Assembly
+
+1. Connect L298N motor driver to motors (2 motors per channel)
+2. Wire ESP32-CAM GPIOs to L298N inputs (see pin connections table)
+3. Connect 12V power supply to L298N
+4. Ensure common ground between ESP32-CAM and L298N
+5. Mount all components on chassis
+
+## Usage
+
+1. Power on the robot
+2. ESP32-CAM connects to Wi-Fi network
+3. Check Serial Monitor for assigned IP address
+4. Open web browser on same network
+5. Navigate to `http://<ESP32_IP_ADDRESS>`
+6. Use control buttons to drive the robot
+7. View live camera feed in real-time
+
+## Troubleshooting
+
+### Common Issues
+
+**Camera initialization fails:**
+- Verify camera cable is properly connected
+- Check GPIO pin definitions match your ESP32-CAM model
+- Ensure sufficient power supply (unstable power causes init failures)
+
+**Cannot connect to Wi-Fi:**
+- Verify SSID and password in [stream.cpp](stream.cpp)
+- Check Wi-Fi network is 2.4GHz (ESP32 doesn't support 5GHz)
+- Monitor Serial output for connection status
+
+**Motors don't respond:**
+- Verify L298N connections and power supply
+- Check GPIO pin definitions in [camera.ino](camera.ino)
+- Ensure motor driver is receiving 12V power
+- Test motors directly with motor driver before ESP32 integration
+
+**Upload fails:**
+- Connect GPIO 0 to GND during upload
+- Use correct board settings in Arduino IDE
+- Try lower upload speed (115200)
+- Check FTDI programmer connections
+
+**Video stream stutters:**
+- Reduce JPEG quality (increase quality number)
+- Lower frame size (QVGA instead of VGA)
+- Improve Wi-Fi signal strength
+- Reduce number of connected clients
+
+## Future Enhancements
+
+Potential improvements for the project:
+
+- **Autonomous Navigation**: Implement obstacle detection with ultrasonic sensors
+- **Speed Control**: Add adjustable speed slider in web interface
+- **Battery Monitoring**: Display battery voltage on web page
+- **Recording**: Save video stream to SD card
+- **Night Vision**: Add IR LEDs for low-light operation
+- **Mobile App**: Develop native iOS/Android application
+- **PID Control**: Implement closed-loop motor control for straight-line accuracy
+- **Telemetry**: Add IMU sensor for orientation tracking
+
+## License
+
+This project is open-source and available for educational and personal use. The DCMotor library is Copyright (c) 2023 Graziano Blasilli.
+
+## Acknowledgments
+
+- ESP32-CAM community for extensive documentation
+- Arduino ESP32 core developers
+- Contributors to the ESP-IDF framework
+
+## Technical Specifications Summary
+
+| Parameter | Value |
+|-----------|-------|
+| Microcontroller | ESP32 Dual-core @ 240MHz |
+| Camera | OV2640, VGA (640×480) |
+| Motor Control | L298N H-Bridge, PWM |
+| Motors | 4× DC Motors (6-12V) |
+| Connectivity | Wi-Fi 802.11 b/g/n |
+| Power | 12V DC input |
+| Video Format | MJPEG streaming |
+| Control Interface | Web-based (HTML/JavaScript) |
+| Max Motor Speed | 180/255 (70% PWM) |
+| Stream Port | 81 (HTTP) |
+| Control Port | 80 (HTTP) |
+
+---
+
+**Project Date**: December 2024  
+**Platform**: ESP32-CAM (AI Thinker)  
+**Status**: Functional prototype
 
 
